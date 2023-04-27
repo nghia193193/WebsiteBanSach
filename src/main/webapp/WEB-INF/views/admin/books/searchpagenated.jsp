@@ -1,0 +1,228 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
+
+<%@ include file="/common/taglib.jsp"%>
+<!DOCTYPE html>
+<html lang="zxx">
+
+
+<head>
+<!-- Required meta tags -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- Bootstrap CSS -->
+<link
+	href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
+	rel="stylesheet"
+	integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC"
+	crossorigin="anonymous">
+<link rel="stylesheet"
+	href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css"
+	integrity="sha512-MV7K8+y+gLIBoVD59lQIYicR65iaqukzvf/nwasF0nqhPay5w/9lJmVM2hMDcnK1OnMGCdVK+iQrJ7lzPJQd1w=="
+	crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+</head>
+<body>
+
+	<section class="row">
+
+		<div class="col mt-4">
+
+			<div class="card">
+
+				<div class="card-header">List Book</div>
+
+				<div class="card-body">
+
+					<!-- Hiển thông báo -->
+
+					<c:if test="${message != null}">
+						<c:if test="${message == 'Xóa không thành công' }">
+							<div class="row">
+								<div class="col">
+									<div class="alert alert-danger">${message }</div>
+								</div>
+							</div>
+						</c:if>
+
+						<c:if test="${message != 'Xóa không thành công' }">
+							<div class="alert alert-primary" role="alert">
+
+								<i>${message}</i>
+
+							</div>
+						</c:if>
+
+					</c:if>
+
+					<!-- Hêt thông báo -->
+					
+					<!-- Search -->
+					<div class="container-fluid">
+							<form class="d-flex" action="/admin/stores/${storeId }/books/searchpagenated">
+								<input class="form-control me-2" type="search"
+									placeholder="Search bookname" aria-label="Search" id="name" name="name">
+								<button class="btn btn-outline-success" type="submit">Search</button>
+							</form>
+						</div>
+					
+					<c:if test="${!bookPage.hasContent() }">
+					<div class="row">
+						<div class="col">
+							<div class="alert alert-danger">
+								Không tìm thấy Book
+							</div>
+						</div>
+					</div>
+					</c:if>
+
+					<c:if test="${bookPage.hasContent() }">
+						<table class="table table-striped table-responsive">
+	
+							<thead class="thead-inverse">
+	
+								<tr>
+									<th>Image</th>
+									<th>Book ID</th>
+									<th>Book Name</th>
+									<th>Price</th>
+									<th>Quantity</th>
+									<th>Category Name</th>
+									<th>Status</th>
+									<th>Create At</th>																
+									<th>Update At</th>
+									<th>Action</th>
+								</tr>
+	
+							</thead>
+	
+							<tbody>
+								<c:forEach items="${bookPage.content}" var="book">
+									
+										<tr>
+											
+											<td><c:if test="${book.image != null }">
+												<img alt="" src="${book.image }" width="70px" class="img-fluid">
+											</c:if>
+											<c:if test="${book.image == null }">
+												<img alt="" src="/template/images/noimage.jpg" width="70px" class="img-fluid">
+											</c:if></td>
+											<td scope="row">${book.bookId}</td>
+											<td>${book.bookName}</td>
+											<td>${book.price}</td>
+											<td>${book.quantity}</td>
+											<td>${book.category.categoryName}</td>
+											<td>${book.selling ? 'Đang bán' : 'Ngừng bán'}</td>
+											<td>${book.createAt}</td>
+											<td>${book.updateAt}</td>
+											<td>
+												<a
+												href="/admin/stores/${storeId }/books/${book.bookId}/edit"
+												class="btn btn-outline-warning"><i class="fa fa-edit"></i></a>
+	
+												<a 
+													data-id="${book.bookId }"
+													data-name="${book.bookName }"
+													onclick="showconfirmation(this.getAttribute('data-id'), this.getAttribute('data-name'))"
+												class="btn btn-outline-danger"><i class="fa fa-trash"></i></a>
+											</td>
+										</tr>
+									
+								</c:forEach>
+							</tbody>
+						</table>
+					</c:if>
+					
+					<script type="text/javascript">
+						function showconfirmation(id,name) {
+							$('#bookName').text(name);
+							$('#yesOption').attr('href','/admin/stores/${storeId }/books/'+id+'/delete');
+							$('#confirmationId').modal('show');
+						}
+					</script>
+
+					<!-- Modal -->
+					<div class="modal fade" id="confirmationId" tabindex="-1"
+						aria-labelledby="confirmationLabel" aria-hidden="true">
+						<div class="modal-dialog">
+							<div class="modal-content">
+								<div class="modal-header">
+									<h5 class="modal-title" id="confirmationLabel">Confirmation</h5>
+									<button type="button" class="btn-close" data-bs-dismiss="modal"
+										aria-label="Close"></button>
+								</div>
+								
+								<div class="modal-body">
+									Bạn có muốn xóa "<span id="bookName"></span>"?
+								</div>
+								<div class="modal-footer">
+									<a id="yesOption" class="btn btn-primary">Yes</a>
+									<button type="button" class="btn btn-secondary"
+										data-bs-dismiss="modal">Close</button>
+								</div>
+							</div>
+						</div>
+					</div>
+					<!-- Modal -->
+					
+					<div class="row">
+						<div class="col-5">
+							<form action="">
+								<div class="mb-3 input-group float-left">
+									<label for="size" class="mr-2"> Page size:</label>
+									<select class="form-select ml-2" name="size" aria-label="size" id="size" onchange="this.form.submit()">
+										<option ${bookPage.size == 3 ? 'selected' : '' } value="3">3</option>
+										<option ${bookPage.size == 5 ? 'selected' : '' } value="5">5</option>
+										<option ${bookPage.size == 10 ? 'selected' : '' } value="10">10</option>
+										<option ${bookPage.size == 15 ? 'selected' : '' } value="15">15</option>
+										<option ${bookPage.size == 20 ? 'selected' : '' } value="20">20</option>
+									</select>
+								</div>
+							</form>
+						
+						</div>
+						<div class="col-7">
+							<!-- Phân trang -->
+							<c:if test="${bookPage.totalPages > 0 }">
+								<nav aria-label="Page navigation">
+									<ul class="pagination">
+										<li class="${1 == bookPage.number+1 ? 'page-item active' : 'page-item' }">
+										<a class="page-link"
+											href='<c:url value="/admin/stores/${storeId }/books/searchpagenated?name=${name }&size=${bookPage.size}&page=${1}"/>'
+											tabindex="-1" aria-disabled="true">First</a></li>
+										
+										<c:forEach items="${pageNumbers }" var="pageNumber">
+											<c:if test="${bookPage.totalPages > 1 }">
+												<li class="${pageNumber == bookPage.number+1 ? 'page-item active' : 'page-item' }">
+												<a href='<c:url value="/admin/stores/${storeId }/books/searchpagenated?name=${name }&size=${bookPage.size}&page=${pageNumber}"/>' 
+												class="page-link">${pageNumber }</a></li>
+											</c:if>
+										</c:forEach>
+											
+										<li class="${bookPage.totalPages == bookPage.number+1? 'page-item active' : 'page-item' }">
+										<a href='<c:url value="/admin/stores/${storeId }/books/searchpagenated?name=${name }&size=${bookPage.size}&page=${bookPage.totalPages}"/>' class="page-link">Last</a>
+										</li>
+									</ul>
+								</nav>
+							</c:if>
+							<!-- end phân trang -->
+						</div>
+					</div>
+					
+					
+					<div class="col-md-6">
+						<div class="float-right">
+							<a class="btn btn-outline-success" href="/admin/stores/${storeId }/books/add">Add New Book</a>
+						</div>
+					</div>
+				</div>
+
+
+
+			</div>
+
+		</div>
+
+	</section>
+</body>
